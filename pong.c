@@ -15,17 +15,20 @@ Student ID:  n5372828
 #include <cab202_timers.h>
 
 // Configuration
-#define DELAY (10)
-#define MIN_HEIGHT (10)
-#define MIN_WIDTH (60)
-#define HUMAN_PADDLE (0)
-#define COMPUTER_PADDLE (1)
+#define DELAY 10
+#define MIN_HEIGHT 10
+#define MIN_WIDTH 60
+#define HUMAN_PADDLE 0
+#define COMPUTER_PADDLE 1
+#define T_MINUTES 0
+#define T_SECONDS 1
 
 // Initial game settings
 bool game_over = false;
 char anykey_help_text[9];
-int key, screen_h, screen_w;
-int lives, score, level;
+int key, lives, score, level, timer, timer_old;
+int seconds_counter = 0, minutes_counter = 0;
+
 sprite_id paddle[2];
 
 
@@ -36,15 +39,13 @@ void draw_help_screen(void);
 void draw_boarder(bool display_menu);
 void draw_info_panel(void);
 void screen_size_test(void);
+void count_time(int * time_return);
 
-
-/**********************************************************************   REMOVE screen_h and screen_w  ******************/
 void setup(){
 	strcpy(anykey_help_text, "start");
 	key = 'h';
-	screen_h = screen_height();
-	screen_w = screen_width();
 
+	timer_old = 0;
 	lives = 10;
 	score = 0;
 	level = 1;
@@ -99,9 +100,7 @@ void process_loop(){
 	clear_screen();
 
 	if (key == 'h' || key == 'H'){
-		// pause game time
 		draw_help_screen();
-		// resume game time
 	}
 
 	key = get_char();
@@ -133,6 +132,30 @@ void process_loop(){
 
 
 /**
+*	Count Time
+* - Simple function to measure game time
+*
+* @param *int time_return Int array with two elements 
+* - int[0]  is seconds and int[1] is minutes
+*/
+void count_time(int * time_return) {
+  timer = round(get_current_time());
+  if (timer != timer_old){
+  	timer_old = timer;
+  	seconds_counter++;
+  }
+
+  if (seconds_counter == 60){
+  	seconds_counter = 0;
+  	minutes_counter++;
+  }
+
+  time_return[T_SECONDS] = seconds_counter;
+  time_return[T_MINUTES] = minutes_counter;
+}
+
+
+/**
 * Draw Info Panel
 * - Add lives, score, current level and time passed at 1/4 increments
 *   across the screen.
@@ -145,11 +168,15 @@ void draw_info_panel() {
 	int score_x = round((screen_width() / 4));
 	int level_x = round((screen_width() / 4) * 2);
 	int timer_x = round((screen_width() / 4) * 3);
-/************************************************************* Setup the timer *****************************************/
+	int time[2] = {0, 0};
+	
+	count_time(time);
+
 	draw_formatted(lives_x, panel_y, "Lives = %d", lives);
 	draw_formatted(score_x, panel_y, "* Score = %d", score_x);
 	draw_formatted(level_x, panel_y, "* Level = %d", level);
-	draw_string(timer_x, panel_y, "* Time = 0:49");
+	draw_formatted(timer_x, panel_y, "* Time = %d:%d", time[T_MINUTES], time[T_SECONDS]);
+
 } // END draw_info_panel
 
 
@@ -162,8 +189,8 @@ void draw_info_panel() {
 * @return void
 */
 void draw_boarder(bool display_menu){
-	int left = 0, right = screen_w-1;
-	int top = 0, bottom = screen_h-1;
+	int left = 0, right = screen_width()-1;
+	int top = 0, bottom = screen_height()-1;
 
 	draw_line(left,  top,    right,  top,    '*');
 	draw_line(left,  top,    left,   bottom, '*');
@@ -202,10 +229,10 @@ void draw_help_screen(){
   int border_padding = 2, loop_key;
 	int title_text_w = 21, title_text_h = 3, title_move_x = 0, title_move_y = 0;
 	int controls_text_w = 24, controls_text_h = 5, controls_move_x = 0, controls_move_y = 0;
-	int anykey_text_x = (screen_w - border_padding - title_text_w / 2) - 2, anykey_move_x = -3;
-	int anykey_text_y = screen_h - border_padding, anykey_move_y = -2;
+	int anykey_text_x = (screen_width() - border_padding - title_text_w / 2) - 2, anykey_move_x = -3;
+	int anykey_text_y = screen_height() - border_padding, anykey_move_y = -2;
 	
-	if (screen_h < 15) {
+	if (screen_height() < 15) {
 		title_move_x = -14;
 		controls_move_x = 14;
 		anykey_move_y = 0;
@@ -215,11 +242,11 @@ void draw_help_screen(){
 		controls_move_y = 2;
 	}
 
-	int title_display_y = ((screen_h - border_padding - title_text_h) /2) + title_move_y;
-	int title_display_x = ((screen_w - border_padding - title_text_w) /2) + title_move_x;
+	int title_display_y = ((screen_height() - border_padding - title_text_h) /2) + title_move_y;
+	int title_display_x = ((screen_width() - border_padding - title_text_w) /2) + title_move_x;
 
-	int controls_display_y = ((screen_h - border_padding - title_text_h) /2) + controls_move_y;
-	int controls_display_x = ((screen_w - border_padding - title_text_w) /2) + controls_move_x;
+	int controls_display_y = ((screen_height() - border_padding - title_text_h) /2) + controls_move_y;
+	int controls_display_x = ((screen_width() - border_padding - title_text_w) /2) + controls_move_x;
 
 	// Create Sprites
 	sprite_title_help_text = sprite_create(
@@ -240,7 +267,12 @@ void draw_help_screen(){
 	// Draw spite text, and key to proceed and border with out menu
 	sprite_draw(sprite_title_help_text);
 	sprite_draw(sprite_controls_help_text);
-	draw_formatted(title_display_x + anykey_move_x, anykey_text_y + anykey_move_y, "Press any key to %s game...", anykey_help_text);
+	draw_formatted(
+		title_display_x + anykey_move_x, 
+		anykey_text_y + anykey_move_y, 
+		"Press any key to %s game...", 
+		anykey_help_text
+	);
 	bool display_menu = false;
 	draw_boarder(display_menu);
 	show_screen();
