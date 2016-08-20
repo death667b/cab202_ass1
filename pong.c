@@ -33,31 +33,39 @@ int key, lives, score, level, timer, timer_old;
 int seconds_counter = -1, minutes_counter = 0;
 int paddle_max_y, paddle_min_y, paddle_height;
 int starting_ball_x, starting_ball_y;
+int start_level_three_time = 0;
+int rails_width;
 
 sprite_id paddle[2];
 sprite_id ball;
+sprite_id singularity;
+sprite_id *rails_upper = NULL;
+sprite_id *rails_lower = NULL;
 
 
 // Function prototypes
 void setup(void);
 void process_loop(void);
+void draw_levels(void);
 void draw_help_screen(void);
 void draw_boarder(bool display_menu);
 void draw_info_panel(void);
+void draw_singularity(void);
 void screen_size_test(void);
 void count_time(int * time_return);
-void move_ball();
+void move_ball(void);
 void move_paddle(sprite_id player, int direction);
 void bounce_on_paddle_contact(int player);
-void check_for_human_lose();
-void move_computer_paddle();
-void game_count_down();
-void show_exit_screen();
-void restart_round();
-void reset_game();
+void check_for_human_lose(void);
+void move_computer_paddle(void);
+void game_count_down(void);
+void show_exit_screen(void);
+void listen_keyboard(void);
+void restart_round(void);
+void reset_game(void);
 
 
-void setup(){
+void setup() {
 	strcpy(anykey_help_text, "start");
 	srand( get_current_time() );
 	key = 'h';
@@ -125,6 +133,57 @@ void setup(){
 		ball_height,
 		ball_img 
 	);
+
+	// Setup Singularity
+
+	int sing_width = 9, sing_height = 5;
+	int sing_x = (screen_width() - sing_width ) /2;
+	int sing_y = screen_height() / 2 - 1;
+	
+	char * sing_img =
+	/**/  " \\  |  / "
+	/**/  "  \\ | /  "
+	/**/  "--     --"
+	/**/  "  / | \\  "
+	/**/  " /  |  \\ ";
+
+	singularity = sprite_create(
+		sing_x, 
+		sing_y, 
+		sing_width, 
+		sing_height, 
+		sing_img
+	);
+
+	// Setup Rails
+
+	rails_width = screen_width() /2;
+	int rails_starting_x = rails_width - (rails_width/2);
+	int single_rail_width = 1, single_rail_height = 1;
+	int rails_y = round((screen_height() +4)/ 3);
+
+	rails_upper = malloc(sizeof(sprite_id) * rails_width);
+	rails_lower = malloc(sizeof(sprite_id) * rails_width);
+
+	char * rails_img = "=";
+
+	for (int i = 0; i < rails_width; i++) {
+		rails_upper[i] = sprite_create(
+			rails_starting_x+i,
+			rails_y,
+			single_rail_width,
+			single_rail_height,
+			rails_img
+		);
+
+		rails_lower[i] = sprite_create(
+			rails_starting_x+i,
+			(rails_y - single_rail_height) * 2,
+			single_rail_width,
+			single_rail_height,
+			rails_img
+		);
+	}
 }
 
 
@@ -155,21 +214,53 @@ void process_loop(){
 	bool display_menu = true;
 	draw_boarder(display_menu);
 	draw_info_panel();
+	draw_levels();
+	game_count_down();
 
+	sprite_draw( ball );
+	move_ball();
+
+	listen_keyboard();
+
+	show_screen();
+}
+
+
+/**
+* Draw Levels
+* - Draw the the characteristics for the 4 different
+*   levels
+*
+* @return void
+*/
+void draw_levels() {
 	sprite_draw( paddle[HUMAN_PADDLE] );
 
 	if (level > 1) {
 		sprite_draw( paddle[COMPUTER_PADDLE] );
 	}
-	
-	sprite_draw( ball );
 
-	game_count_down();
+	if (level == 3) {
+		draw_singularity();
+	}
 
-	move_ball();
+	if (level == 4) {
+		for (int i = 0; i < rails_width; i++) {
+			sprite_draw(rails_upper[i]);
+			sprite_draw(rails_lower[i]);
+		}
+
+	}
+} // END draw_levels
 
 
-	// Listen for key inputs for next loop
+/**
+* Listen Keyboard
+* - React to user input, game controls and quiting
+*   
+* @return void
+*/
+void listen_keyboard() {
 	if (key == 's' || key == 'S') {
 		move_paddle(paddle[HUMAN_PADDLE], MOVE_DOWN);
 	}
@@ -191,9 +282,31 @@ void process_loop(){
 	if (key == 'q' || key == 'Q') {
 		game_over = true;
 	}
+} // END listen_keyboard
 
-	show_screen();
-}
+
+/**
+* Draw Singularity
+* - Draws the singularity sprite
+* - Displays after a 5 second delay
+*
+* @return void
+*/
+void draw_singularity() {
+	int time[2] = {0, 0};
+	int sum_time, show_after = 5;
+	count_time(time);
+
+	sum_time = (time[T_MINUTES] * 60) + time[T_SECONDS];
+
+	if (start_level_three_time == 0) {
+		start_level_three_time = sum_time;
+	} else {
+		if (sum_time - start_level_three_time > show_after){
+			sprite_draw(singularity);
+		}
+	}
+} // END draw_singularity
 
 
 /**
@@ -284,6 +397,7 @@ void restart_round() {
 	sprite_move_to(ball, starting_ball_x, starting_ball_y);
 	count_down_timer = true;
 	start_ball = true;
+	start_level_three_time = 0;
 } // END restart_round
 
 
@@ -307,7 +421,7 @@ void check_for_human_lose() {
 
 
 void move_computer_paddle() {
-	int ball_x = 2;
+	int ball_x = 3;
 	int paddle_y = round( sprite_y(ball) - (paddle_height /2));
 
 	if (paddle_min_y <= paddle_y && paddle_y <= paddle_max_y) {
@@ -328,9 +442,15 @@ void move_computer_paddle() {
 */
 void game_count_down() {
 	if (count_down_timer) {
-		int counter_steps = 3, counter_delay = 500;
-		int counter_x = (screen_width()  /2) - 2;
-		int counter_y = screen_height() /3;
+		int counter_steps = 3, counter_delay = 300;
+		int counter_x = (screen_width()  /2) - 2, counter_y;
+
+		if (screen_height() >= 15) {
+			counter_y = screen_height() /3;
+		} else {
+			counter_y = 5;
+		}
+		
 		int box_width = 10, box_height = 5;
 
 		sprite_id counter_box;
