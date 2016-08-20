@@ -30,7 +30,7 @@ Student ID:  n5372828
 bool game_over = false, start_ball = true, count_down_timer = true;
 char anykey_help_text[9];
 int key, lives, score, level, timer, timer_old;
-int seconds_counter = 0, minutes_counter = 0;
+int seconds_counter = -1, minutes_counter = 0;
 int paddle_max_y, paddle_min_y, paddle_height;
 int starting_ball_x, starting_ball_y;
 
@@ -53,6 +53,8 @@ void check_for_human_lose();
 void move_computer_paddle();
 void game_count_down();
 void show_exit_screen();
+void restart_round();
+void reset_game();
 
 
 void setup(){
@@ -154,8 +156,12 @@ void process_loop(){
 	draw_boarder(display_menu);
 	draw_info_panel();
 
-	sprite_draw( paddle[HUMAN_PADDLE]    );
-	sprite_draw( paddle[COMPUTER_PADDLE] );
+	sprite_draw( paddle[HUMAN_PADDLE] );
+
+	if (level > 1) {
+		sprite_draw( paddle[COMPUTER_PADDLE] );
+	}
+	
 	sprite_draw( ball );
 
 	game_count_down();
@@ -174,10 +180,12 @@ void process_loop(){
 
 	if (key == 'l' || key == 'L') {
 		if (level < 4){
-			level++;
+			level++;			
 		} else {
 			level = 1;
 		}
+
+		restart_round();
 	} 
 
 	if (key == 'q' || key == 'Q') {
@@ -231,15 +239,16 @@ void bounce_on_paddle_contact(int player) {
 				(ball_y <= bottom_gap &&
 				 ball_y == paddle_y+paddle_height-1)) {
 
-			int move_ball = 1;
+			int move_ball_y = 1;
 			ball_dy = -ball_dy;
 
 			if (ball_y == paddle_y) {
-				move_ball = -1;
+				move_ball_y = -1;
 			}
 
 			sprite_back(ball);
-			sprite_move(ball, 0, move_ball);
+			sprite_move(ball, 0, move_ball_y);
+
 		// General contact
 		} else {
 			ball_dx = -ball_dx;
@@ -250,6 +259,32 @@ void bounce_on_paddle_contact(int player) {
 		sprite_turn_to(ball, ball_dx, ball_dy );
 	}
 } // END bounce_on_paddle_contact
+
+
+/**
+* Reset Game
+* - Reset the game after a human lose or level change
+*
+* @return void
+*/
+void reset_game() {
+	timer_old = 0, timer = 0, lives = 10, score = 0, level = 1;
+	seconds_counter = -1, minutes_counter = 0;
+	restart_round();
+} // END reset_game
+
+
+/**
+* Restart Round
+* - Restarts the game after a human lose or level change
+*
+* @return void
+*/
+void restart_round() {
+	sprite_move_to(ball, starting_ball_x, starting_ball_y);
+	count_down_timer = true;
+	start_ball = true;
+} // END restart_round
 
 
 /**
@@ -266,8 +301,7 @@ void check_for_human_lose() {
 	// If the human has lost, restart round
 	if (x == right_wall_x) {
 		lives--;
-		sprite_move_to(ball, starting_ball_x, starting_ball_y);
-		count_down_timer = true;
+		restart_round();
 	}
 } // END check_for_human_lose
 
@@ -294,7 +328,7 @@ void move_computer_paddle() {
 */
 void game_count_down() {
 	if (count_down_timer) {
-		int counter = 3;
+		int counter_steps = 3, counter_delay = 500;
 		int counter_x = (screen_width()  /2) - 2;
 		int counter_y = screen_height() /3;
 		int box_width = 10, box_height = 5;
@@ -318,12 +352,16 @@ void game_count_down() {
 
 		do {
 			sprite_draw(counter_box);
-			draw_formatted(counter_x,counter_y,"%d...", counter--);
+			draw_formatted(counter_x,counter_y,"%d...", counter_steps--);
 			show_screen();
-			timer_pause(500);
-		} while (counter > 0);
+			timer_pause(counter_delay);
+			get_char();
+		} while (counter_steps > 0);
 
 		count_down_timer = false;
+
+		// Align the clock with true game time
+		seconds_counter--;
 	}
 } // END game_count_down
 
@@ -348,10 +386,12 @@ void move_ball() {
 	sprite_step(ball);
 
 	bounce_on_paddle_contact(HUMAN_PADDLE);
-	bounce_on_paddle_contact(COMPUTER_PADDLE);
 	check_for_human_lose();
-	move_computer_paddle();
 
+	if (level > 1) {
+		bounce_on_paddle_contact(COMPUTER_PADDLE);
+		move_computer_paddle();
+	}
 
 	// General ball movement
 	int ball_width = 1,	ball_height = 1;
@@ -413,7 +453,7 @@ void move_paddle(sprite_id player, int direction) {
 * - int[0]  is seconds and int[1] is minutes
 */
 void count_time(int * time_return) {
-  timer = round(get_current_time());
+  timer = get_current_time();
   if (timer != timer_old){
   	timer_old = timer;
   	seconds_counter++;
