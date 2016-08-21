@@ -27,7 +27,7 @@ Student ID:  n5372828
 #define MOVE_UP -1
 
 // Initial game settings
-bool game_over = false, start_ball = true, count_down_timer = true;
+bool game_over = false, initialize_ball = true, count_down_timer = true;
 bool singularity_active = false;
 char anykey_help_text[9];
 int key, lives, score, level, timer, timer_old;
@@ -40,6 +40,7 @@ int rails_width;
 
 sprite_id paddle[2];
 sprite_id ball;
+sprite_id counter_box;
 sprite_id singularity;
 sprite_id *rails_upper = NULL;
 sprite_id *rails_lower = NULL;
@@ -57,6 +58,7 @@ void singularity_effect(void);
 void screen_size_test(void);
 void count_time(int * time_return);
 void move_ball(void);
+void check_for_wall_bounce(void);
 void move_paddle(sprite_id player, int direction);
 void bounce_on_paddle_contact(int player);
 void check_for_human_lose(void);
@@ -188,6 +190,33 @@ void setup() {
 			rails_img
 		);
 	}
+
+	// Setup Countdown box
+
+	int counter_x = (screen_width()  /2) - 2, counter_y;
+
+	if (screen_height() >= 15) {
+		counter_y = screen_height() /3;
+	} else {
+		counter_y = 5;
+	}
+
+	int box_width = 10, box_height = 5;
+
+	char * counter_box_img =
+	/**/  "*--------*"
+	/**/  "|        |"
+	/**/  "|        |"
+	/**/  "|        |"
+	/**/  "*--------*";
+
+	counter_box = sprite_create(
+		counter_x -3, 
+		counter_y -2, 
+		box_width, 
+		box_height, 
+		counter_box_img
+	);
 }
 
 
@@ -350,6 +379,9 @@ void singularity_effect(void) {
 * @return void
 */
 void ball_acceleration() {
+	int ball_x = round(sprite_x(ball));
+	int ball_y = round(sprite_y(ball));
+
 	// Smaller the number, the higher intensity
 	int inner_intensity = 1e-5;
 
@@ -476,7 +508,7 @@ void restart_round() {
 	sprite_move_to(ball, starting_ball_x, starting_ball_y);
 	singularity_active = false;
 	count_down_timer = true;
-	start_ball = true;
+	initialize_ball = true;
 	start_level_three_time = 0;
 } // END restart_round
 
@@ -530,25 +562,6 @@ void game_count_down() {
 		} else {
 			counter_y = 5;
 		}
-		
-		int box_width = 10, box_height = 5;
-
-		sprite_id counter_box;
-
-		char * counter_box_img =
-		/**/  "*--------*"
-		/**/  "|        |"
-		/**/  "|        |"
-		/**/  "|        |"
-		/**/  "*--------*";
-
-		counter_box = sprite_create(
-			counter_x -3, 
-			counter_y -2, 
-			box_width, 
-			box_height, 
-			counter_box_img
-		);
 
 		do {
 			sprite_draw(counter_box);
@@ -574,8 +587,8 @@ void game_count_down() {
 * @return void
 */
 void move_ball() {
-	if (start_ball) {
-		start_ball = false;
+	if (initialize_ball) {
+		initialize_ball = false;
 		int start_angle = 90;
 		double angle = (rand() % start_angle) - start_angle /2;
 
@@ -593,33 +606,44 @@ void move_ball() {
 		move_computer_paddle();
 	}
 
-	// General ball movement
+	check_for_wall_bounce();
+} // END move_ball
+
+
+/**
+* Check for Wall Bounce
+* - After each ball step check if it has hit a wall
+* - If true, change direction
+*
+* @return void
+*/
+void check_for_wall_bounce() {
 	int ball_width = 1,	ball_height = 1;
 	int panel_height = 2;
 
-	int x = round( sprite_x(ball) );
-	int y = round( sprite_y(ball) );
+	int ball_x = round( sprite_x(ball) );
+	int ball_y = round( sprite_y(ball) );
 
-	double dx = sprite_dx(ball);
-	double dy = sprite_dy(ball);
+	double ball_dx = sprite_dx(ball);
+	double ball_dy = sprite_dy(ball);
 
 	bool dir_changed = false;
 
-	if ( x == 0 || x == screen_width() - ball_width ) {
-		dx = -dx;
+	if ( ball_x == 0 || ball_x == screen_width() - ball_width ) {
+		ball_dx = -ball_dx;
 		dir_changed = true;
 	}
 
-	if ( y == panel_height  || y == screen_height() - ball_height ) {
-		dy = -dy;
+	if ( ball_y == panel_height  || ball_y == screen_height() - ball_height ) {
+		ball_dy = -ball_dy;
 		dir_changed = true;
 	}
 
 	if ( dir_changed ) {
 		sprite_back(ball);
-		sprite_turn_to(ball, dx, dy );
+		sprite_turn_to(ball, ball_dx, ball_dy );
 	}
-} // END move_ball
+} // END check_for_wall_bounce
 
 
 /**
@@ -751,7 +775,7 @@ void draw_help_screen(){
 		anykey_move_y = 0;
 		anykey_move_x = 11;
 	} else {
-		title_move_y = -2;
+		title_move_y = -1 * screen_height() / 5;
 		controls_move_y = 2;
 	}
 
@@ -794,13 +818,9 @@ void draw_help_screen(){
 	do{
 		// Note:  no key press returns a negitive number
 		loop_key = get_char();
+	} while (loop_key < 0);
 
-		if (loop_key > 0) {
-			key = loop_key;
-		}
-	} while (key == 'h' || key == 'H');
-
-	if (key == 'q' || key =='Q') {
+	if (loop_key == 'q' || loop_key =='Q') {
 		game_over = true;
 		count_down_timer = false;
 	}
