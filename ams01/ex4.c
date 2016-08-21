@@ -7,16 +7,13 @@
 #include <math.h>
 
 void create_hist( double x[], int count, int hist[] ) {
-	// clean hist[]
 	for (int i = 0; i < 22; i++) {
 		hist[i] = 0;
 	}
-
 	for (int i = 0; i < count; i++){
 		int y = x[i];
 		hist[y]++;
 	}
-
 }
 
 void call_function( const char * label, double x[], int count ) {

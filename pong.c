@@ -325,19 +325,34 @@ void effect_singularity(void) {
 			ball_x >= sing_x &&
 			ball_y <= sing_y+sing_height &&
 			ball_y >= sing_y) {
-			
-			draw_string(sing_x,sing_y,"|");
-			draw_string(sing_x,sing_y+1,"|");
-			draw_string(sing_x,sing_y+2,"|");
-			draw_string(sing_x,sing_y+3,"|");
-			draw_string(sing_x,sing_y+4,"|");
 
-			draw_string(sing_x+sing_width,sing_y,"|");
-			draw_string(sing_x+sing_width,sing_y+1,"|");
-			draw_string(sing_x+sing_width,sing_y+2,"|");
-			draw_string(sing_x+sing_width,sing_y+3,"|");
-			draw_string(sing_x+sing_width,sing_y+4,"|");
+			double x_diff = (screen_width()/2-1) - ball_x;
+			double y_diff = (screen_height()/2+1) - ball_y;
 
+			double dist_squared = pow(y_diff, 2) + pow(x_diff, 2);
+
+			if (dist_squared < 1e-1) {
+				dist_squared = 1e-1;
+			}
+
+			double dist = sqrt(dist_squared);
+
+			double dx = sprite_dx(ball);
+			double dy = sprite_dy(ball);
+
+			double a = 0.075 / dist_squared;
+
+			dx = dx + (a * x_diff / dist);
+			dy = dy + (a * y_diff / dist);
+
+			double v = sqrt(pow(dx, 2) + pow(dy, 2));
+
+			if (v > 1){
+				dx = dx / v;
+				dy = dy / v;
+			}
+
+			sprite_turn_to(ball, dx, dy);
 		}
 
 		
@@ -536,7 +551,7 @@ void move_ball() {
 		int start_angle = 90;
 		double angle = (rand() % start_angle) - start_angle /2;
 
-		sprite_turn_to(ball, 0.1, 0 );
+		sprite_turn_to(ball, 0.2, 0 );
 		sprite_turn(ball, angle);
 	}
 
