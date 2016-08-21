@@ -28,6 +28,7 @@ Student ID:  n5372828
 
 // Initial game settings
 bool game_over = false, start_ball = true, count_down_timer = true;
+bool singularity_active = false;
 char anykey_help_text[9];
 int key, lives, score, level, timer, timer_old;
 int seconds_counter = -1, minutes_counter = 0;
@@ -51,6 +52,7 @@ void draw_help_screen(void);
 void draw_boarder(bool display_menu);
 void draw_info_panel(void);
 void draw_singularity(void);
+void effect_singularity(void);
 void screen_size_test(void);
 void count_time(int * time_return);
 void move_ball(void);
@@ -220,6 +222,8 @@ void process_loop(){
 	sprite_draw( ball );
 	move_ball();
 
+	effect_singularity();
+
 	listen_keyboard();
 
 	show_screen();
@@ -235,6 +239,7 @@ void process_loop(){
 */
 void draw_levels() {
 	sprite_draw( paddle[HUMAN_PADDLE] );
+
 
 	if (level > 1) {
 		sprite_draw( paddle[COMPUTER_PADDLE] );
@@ -304,9 +309,17 @@ void draw_singularity() {
 	} else {
 		if (sum_time - start_level_three_time > show_after){
 			sprite_draw(singularity);
+			singularity_active = true;
 		}
 	}
 } // END draw_singularity
+
+
+void effect_singularity(void) {
+	if (singularity_active) {
+		draw_string(10,10,"TEST");
+	}
+} // EMD effect_singularity
 
 
 /**
@@ -395,6 +408,7 @@ void reset_game() {
 */
 void restart_round() {
 	sprite_move_to(ball, starting_ball_x, starting_ball_y);
+	singularity_active = false;
 	count_down_timer = true;
 	start_ball = true;
 	start_level_three_time = 0;
