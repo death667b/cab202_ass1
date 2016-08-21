@@ -53,7 +53,7 @@ void draw_help_screen(void);
 void draw_boarder(bool display_menu);
 void draw_info_panel(void);
 void draw_singularity(void);
-void effect_singularity(void);
+void singularity_effect(void);
 void screen_size_test(void);
 void count_time(int * time_return);
 void move_ball(void);
@@ -63,6 +63,7 @@ void check_for_human_lose(void);
 void move_computer_paddle(void);
 void game_count_down(void);
 void show_exit_screen(void);
+void ball_acceleration(void);
 void listen_keyboard(void);
 void restart_round(void);
 void reset_game(void);
@@ -223,7 +224,7 @@ void process_loop(){
 	sprite_draw( ball );
 	move_ball();
 
-	effect_singularity();
+	singularity_effect();
 
 	listen_keyboard();
 
@@ -315,49 +316,76 @@ void draw_singularity() {
 } // END draw_singularity
 
 
-void effect_singularity(void) {
+/**
+* Singularity Effect
+* - When active calculate the area of effect for the 
+*   singularity
+*
+* @return void
+*/
+void singularity_effect(void) {
 	if (singularity_active) {
 		// sing_x, sing_y, sing_width, sing_height;
 		int ball_x = round(sprite_x(ball));
 		int ball_y = round(sprite_y(ball));
 
-		if (ball_x <= sing_x+sing_width &&
-			ball_x >= sing_x &&
-			ball_y <= sing_y+sing_height &&
-			ball_y >= sing_y) {
+		if (ball_x <= sing_x + sing_width &&
+				ball_x >= sing_x &&
+				ball_y <= sing_y + sing_height &&
+				ball_y >= sing_y) {
 
-			double x_diff = (screen_width()/2-1) - ball_x;
-			double y_diff = (screen_height()/2+1) - ball_y;
-
-			double dist_squared = pow(y_diff, 2) + pow(x_diff, 2);
-
-			if (dist_squared < 1e-1) {
-				dist_squared = 1e-1;
-			}
-
-			double dist = sqrt(dist_squared);
-
-			double dx = sprite_dx(ball);
-			double dy = sprite_dy(ball);
-
-			double a = 0.075 / dist_squared;
-
-			dx = dx + (a * x_diff / dist);
-			dy = dy + (a * y_diff / dist);
-
-			double v = sqrt(pow(dx, 2) + pow(dy, 2));
-
-			if (v > 1){
-				dx = dx / v;
-				dy = dy / v;
-			}
-
-			sprite_turn_to(ball, dx, dy);
+			ball_acceleration();
 		}
 
 		
 	}
-} // EMD effect_singularity
+} // EMD singularity_effect
+
+
+/**
+* Ball Acceleration
+* - Calculate the balls acceleration when under effect from the
+*   singularity and adjust the balls speed and direction
+*
+* @return void
+*/
+void ball_acceleration() {
+	// Smaller the number, the higher intensity
+	int inner_intensity = 1e-5;
+
+	// Bigger the number, faster acceleration increase
+	int gravity_and_mass = 0.075;
+
+	int speed_limit_per_redraw = 1;
+
+	double x_difference = (screen_width()/2-1) - ball_x;
+	double y_difference = (screen_height()/2+1) - ball_y;
+
+	double distance_squared = pow(y_difference, 2) + pow(x_difference, 2);
+
+	if (distance_squared < inner_intensity) {
+		distance_squared = inner_intensity;
+	}
+
+	double distance = sqrt(distance_squared);
+
+	double ball_dx = sprite_dx(ball);
+	double ball_dy = sprite_dy(ball);
+
+	double acceleration = gravity_and_mass / distance_squared;
+
+	ball_dx = ball_dx + (acceleration * x_difference / distance);
+	ball_dy = ball_dy + (acceleration * y_difference / distance);
+
+	double velocity = sqrt(pow(ball_dx, 2) + pow(ball_dy, 2));
+
+	if (velocity > speed_limit_per_redraw){
+		ball_dx = ball_dx / velocity;
+		ball_dy = ball_dy / velocity;
+	}
+
+	sprite_turn_to(ball, ball_dx, ball_dy);
+} // END ball_acceleration
 
 
 /**
@@ -625,19 +653,19 @@ void move_paddle(sprite_id player, int direction) {
 * - int[0]  is seconds and int[1] is minutes
 */
 void count_time(int * time_return) {
-  timer = get_current_time();
-  if (timer != timer_old){
-  	timer_old = timer;
-  	seconds_counter++;
-  }
+	timer = get_current_time();
+	if (timer != timer_old){
+		timer_old = timer;
+		seconds_counter++;
+	}
 
-  if (seconds_counter == 60){
-  	seconds_counter = 0;
-  	minutes_counter++;
-  }
+	if (seconds_counter == 60){
+		seconds_counter = 0;
+		minutes_counter++;
+	}
 
-  time_return[T_SECONDS] = seconds_counter;
-  time_return[T_MINUTES] = minutes_counter;
+	time_return[T_SECONDS] = seconds_counter;
+	time_return[T_MINUTES] = minutes_counter;
 } // END count_time
 
 
