@@ -35,6 +35,7 @@ int seconds_counter = -1, minutes_counter = 0;
 int paddle_max_y, paddle_min_y, paddle_height;
 int starting_ball_x, starting_ball_y;
 int start_level_three_time = 0;
+int sing_x, sing_y, sing_width, sing_height;
 int rails_width;
 
 sprite_id paddle[2];
@@ -138,9 +139,9 @@ void setup() {
 
 	// Setup Singularity
 
-	int sing_width = 9, sing_height = 5;
-	int sing_x = (screen_width() - sing_width ) /2;
-	int sing_y = screen_height() / 2 - 1;
+	sing_width = 9, sing_height = 5;
+	sing_x = (screen_width() - sing_width ) /2;
+	sing_y = screen_height() / 2 - 1;
 	
 	char * sing_img =
 	/**/  " \\  |  / "
@@ -240,7 +241,6 @@ void process_loop(){
 void draw_levels() {
 	sprite_draw( paddle[HUMAN_PADDLE] );
 
-
 	if (level > 1) {
 		sprite_draw( paddle[COMPUTER_PADDLE] );
 	}
@@ -317,7 +317,27 @@ void draw_singularity() {
 
 void effect_singularity(void) {
 	if (singularity_active) {
-		draw_string(10,10,"TEST");
+		// sing_x, sing_y, sing_width, sing_height;
+		int ball_x = round(sprite_x(ball));
+		//int ball_y = round(sprite_y(ball));
+
+		if (ball_x <= sing_x+sing_width &&
+			ball_x >= sing_x) {
+			draw_string(sing_x,sing_y,"|");
+			draw_string(sing_x,sing_y+1,"|");
+			draw_string(sing_x,sing_y+2,"|");
+			draw_string(sing_x,sing_y+3,"|");
+			draw_string(sing_x,sing_y+4,"|");
+
+			draw_string(sing_x+sing_width,sing_y,"|");
+			draw_string(sing_x+sing_width,sing_y+1,"|");
+			draw_string(sing_x+sing_width,sing_y+2,"|");
+			draw_string(sing_x+sing_width,sing_y+3,"|");
+			draw_string(sing_x+sing_width,sing_y+4,"|");
+
+		}
+
+		
 	}
 } // EMD effect_singularity
 
@@ -513,7 +533,7 @@ void move_ball() {
 		int start_angle = 90;
 		double angle = (rand() % start_angle) - start_angle /2;
 
-		sprite_turn_to(ball, 0.2, 0 );
+		sprite_turn_to(ball, 0.1, 0 );
 		sprite_turn(ball, angle);
 	}
 
