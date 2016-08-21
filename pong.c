@@ -319,10 +319,13 @@ void effect_singularity(void) {
 	if (singularity_active) {
 		// sing_x, sing_y, sing_width, sing_height;
 		int ball_x = round(sprite_x(ball));
-		//int ball_y = round(sprite_y(ball));
+		int ball_y = round(sprite_y(ball));
 
 		if (ball_x <= sing_x+sing_width &&
-			ball_x >= sing_x) {
+			ball_x >= sing_x &&
+			ball_y <= sing_y+sing_height &&
+			ball_y >= sing_y) {
+			
 			draw_string(sing_x,sing_y,"|");
 			draw_string(sing_x,sing_y+1,"|");
 			draw_string(sing_x,sing_y+2,"|");
