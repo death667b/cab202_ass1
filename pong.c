@@ -663,8 +663,7 @@ void draw_help_screen(){
   	int border_padding = 2, loop_key;
 	int title_text_w = 26, title_text_h = 3, title_move_x = 0, title_move_y = 0;
 	int controls_text_w = 24, controls_text_h = 6, controls_move_x = 0, controls_move_y = 0;
-	int anykey_text_x = (screen_width() - border_padding - title_text_w / 2) - 2, anykey_move_x = -3;
-	int anykey_text_y = screen_height() - border_padding, anykey_move_y = -1;
+	int anykey_text_y = screen_height() - border_padding, anykey_move_y = -1, anykey_move_x = -3;
 	
 	if (screen_height() < 15) {
 		title_move_x = -14;
