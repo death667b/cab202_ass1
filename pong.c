@@ -15,6 +15,7 @@ Student ID:  n5372828
 #include <cab202_sprites.h>
 #include <cab202_timers.h>
 
+
 // Configuration
 #define DELAY 10
 #define MIN_HEIGHT 10
@@ -26,13 +27,15 @@ Student ID:  n5372828
 #define MOVE_DOWN 1
 #define MOVE_UP -1
 
-// Initial game settings
+
+// Global Variables
 bool game_over = false, initialize_ball = true, count_down_timer = true;
 bool singularity_active = false;
 char anykey_help_text[9];
 int key, lives, score, level, timer, timer_old;
 int seconds_counter = -1, minutes_counter = 0;
 int paddle_max_y, paddle_min_y, paddle_height;
+int human_paddle_x, computer_paddle_x, paddle_start_y;
 int starting_ball_x, starting_ball_y;
 int start_level_three_time = 0;
 int sing_x, sing_y, sing_width, sing_height;
@@ -69,6 +72,7 @@ void ball_acceleration(void);
 void listen_keyboard(void);
 void restart_round(void);
 void reset_game(void);
+void game_lost(void);
 
 
 void setup() {
@@ -77,7 +81,7 @@ void setup() {
 	key = 'h';
 
 	timer_old = 0;
-	lives = 10;
+	lives = 1;
 	score = 0;
 	level = 1;
 
@@ -102,8 +106,8 @@ void setup() {
 		paddle_height = (screen_height() - panel_height - 1) /2;
 	}
 
-	int human_paddle_x = screen_width() - 4, computer_paddle_x = 3;
-	int paddle_start_y = (screen_height() - paddle_height) /2 + 1;
+	human_paddle_x = screen_width() - 4, computer_paddle_x = 3;
+	paddle_start_y = (screen_height() - paddle_height) /2 + 1;
 
 	paddle_min_y = 3;
 	paddle_max_y = screen_height() - 1 - paddle_height;
@@ -492,6 +496,9 @@ void bounce_on_paddle_contact(int player) {
 * @return void
 */
 void reset_game() {
+	sprite_move_to(paddle[HUMAN_PADDLE], human_paddle_x, paddle_start_y);
+	sprite_move_to(paddle[COMPUTER_PADDLE], computer_paddle_x, paddle_start_y);
+	
 	timer_old = 0, timer = 0, lives = 10, score = 0, level = 1;
 	seconds_counter = -1, minutes_counter = 0;
 	restart_round();
@@ -506,6 +513,7 @@ void reset_game() {
 */
 void restart_round() {
 	sprite_move_to(ball, starting_ball_x, starting_ball_y);
+
 	singularity_active = false;
 	count_down_timer = true;
 	initialize_ball = true;
@@ -527,19 +535,56 @@ void check_for_human_lose() {
 	// If the human has lost, restart round
 	if (x == right_wall_x) {
 		lives--;
-		restart_round();
+		if (lives > 0) {
+			restart_round();
+		} else {
+			game_lost();
+		}
+		
 	}
 } // END check_for_human_lose
 
 
+void game_lost() {
+	clear_screen();
+
+	bool show_panel = false;
+	draw_boarder(show_panel);
+
+	int title_text_x = (screen_width() /2) - 6, title_text_y = screen_height() /3;
+	int question_text_x = (screen_width() /2) - 22, question_text_y = screen_height() /2;
+
+	draw_string(title_text_x, title_text_y, "You have lost");
+	draw_string(question_text_x, question_text_y, "Would you like to play again?  (Y)es or (N)o");
+
+	show_screen();
+
+	bool correct_key = false;
+	int loop_key;
+	do {
+		loop_key = wait_char();
+
+		if (loop_key == 'y' || loop_key == 'Y') {
+			correct_key = true;
+			key = 'h';
+			reset_game();
+
+		} else if (loop_key == 'n' || loop_key == 'N') {
+			game_over = true;
+			correct_key = true;
+		}
+
+	} while ( !correct_key );
+} // END game_lost
+
+
 void move_computer_paddle() {
-	int ball_x = 3;
 	int paddle_y = round( sprite_y(ball) - (paddle_height /2));
 
 	if (paddle_min_y <= paddle_y && paddle_y <= paddle_max_y) {
 		sprite_move_to(
 			paddle[COMPUTER_PADDLE], 
-			ball_x, 
+			computer_paddle_x, 
 			paddle_y);
 	}
 } // END move_computer_paddle
@@ -858,7 +903,12 @@ void screen_size_test(){
 */
 void show_exit_screen() {
 	clear_screen();
+
+	bool show_panel = false;
+	draw_boarder(show_panel);
+
 	draw_string(screen_width() /2-12, (screen_height() /2),   "Thank you for playing...");
+
 	show_screen();
 	timer_pause(3000);
 } //END show_exit_screen
