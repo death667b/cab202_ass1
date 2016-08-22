@@ -81,7 +81,7 @@ void setup() {
 	key = 'h';
 
 	timer_old = 0;
-	lives = 1;
+	lives = 10;
 	score = 0;
 	level = 1;
 
@@ -358,7 +358,6 @@ void draw_singularity() {
 */
 void singularity_effect(void) {
 	if (singularity_active) {
-		// sing_x, sing_y, sing_width, sing_height;
 		int ball_x = round(sprite_x(ball));
 		int ball_y = round(sprite_y(ball));
 
@@ -387,10 +386,10 @@ void ball_acceleration() {
 	int ball_y = round(sprite_y(ball));
 
 	// Smaller the number, the higher intensity
-	int inner_intensity = 1e-5;
+	double inner_intensity = 1e-5;
 
 	// Bigger the number, faster acceleration increase
-	int gravity_and_mass = 0.075;
+	double gravity_and_mass = 0.075;
 
 	int speed_limit_per_redraw = 1;
 
