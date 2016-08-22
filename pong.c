@@ -130,7 +130,7 @@ void setup() {
 
 	// Setup Ball
 
-	char * ball_img = "o";
+	char * ball_img = "O";
 
 	starting_ball_x = screen_width() / 2;
 	starting_ball_y = screen_height() / 2;
