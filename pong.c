@@ -17,15 +17,15 @@ Student ID:  n5372828
 
 
 // Configuration
-#define DELAY 10
-#define MIN_HEIGHT 10
-#define MIN_WIDTH 60
-#define HUMAN_PADDLE 0
-#define COMPUTER_PADDLE 1
-#define T_MINUTES 0
-#define T_SECONDS 1
-#define MOVE_DOWN 1
-#define MOVE_UP -1
+#define DELAY (10)
+#define MIN_HEIGHT (10)
+#define MIN_WIDTH (60)
+#define HUMAN_PADDLE (0)
+#define COMPUTER_PADDLE (1)
+#define T_MINUTES (0)
+#define T_SECONDS (1)
+#define MOVE_DOWN (1)
+#define MOVE_UP (-1)
 
 
 // Global Variables
@@ -70,6 +70,7 @@ void game_count_down(void);
 void show_exit_screen(void);
 void ball_acceleration(void);
 void listen_keyboard(void);
+void level_change(void);
 void restart_round(void);
 void reset_game(void);
 void game_lost(void);
@@ -309,19 +310,30 @@ void listen_keyboard() {
 	}
 
 	if (key == 'l' || key == 'L') {
-		if (level < 4){
-			level++;			
-		} else {
-			level = 1;
-		}
-
-		restart_round();
+		level_change();
 	} 
 
 	if (key == 'q' || key == 'Q') {
 		game_over = true;
 	}
 } // END listen_keyboard
+
+
+/**
+* Level Change
+* - Cycle though levels
+*
+* @return void
+*/
+void level_change() {
+	if (level < 4){
+		level++;			
+	} else {
+		level = 1;
+	}
+
+	restart_round();
+} // END level_change
 
 
 /**
@@ -612,7 +624,10 @@ void game_count_down() {
 			draw_formatted(counter_x,counter_y,"%d...", counter_steps--);
 			show_screen();
 			timer_pause(counter_delay);
-			get_char();
+			key = get_char();
+			if (key == 'l' || key == 'L') {
+
+			}
 		} while (counter_steps > 0);
 
 		count_down_timer = false;
