@@ -626,7 +626,8 @@ void game_count_down() {
 			timer_pause(counter_delay);
 			key = get_char();
 			if (key == 'l' || key == 'L') {
-
+				level_change();
+				draw_info_panel();
 			}
 		} while (counter_steps > 0);
 
