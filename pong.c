@@ -73,6 +73,7 @@ void listen_keyboard(void);
 void level_change(void);
 void restart_round(void);
 void reset_game(void);
+void rail_collision(void);
 void game_lost(void);
 
 
@@ -259,11 +260,67 @@ void process_loop(){
 	move_ball();
 
 	singularity_effect();
+	rail_collision();
 
 	listen_keyboard();
 
 	show_screen();
 }
+
+
+void rail_collision(void) {
+	if (level == 4) {
+		int contact;
+
+		bool change_direction = false;
+
+		int ball_x = round( sprite_x(ball) );
+		int ball_y = round( sprite_y(ball) );
+
+		double ball_dx = sprite_dx(ball);
+		double ball_dy = sprite_dy(ball);
+
+		int left_upper_rail = sprite_x(rails_upper[0]);
+		int top_upper_rail = sprite_y(rails_upper[0]);
+		int right_upper_rail = sprite_x(rails_upper[rails_width-1]);
+
+		if (ball_x <= right_upper_rail && 
+			ball_x >= left_upper_rail && 
+			ball_y == top_upper_rail) {
+
+			contact = ball_x - left_upper_rail;
+
+			if (sprite_visible(rails_upper[contact])){
+				sprite_hide(rails_upper[contact]);
+				change_direction = true;
+			}
+			
+		}
+
+		int left_lower_rail = sprite_x(rails_lower[0]);
+		int top_lower_rail = sprite_y(rails_lower[0]);
+		int right_lower_rail = sprite_x(rails_lower[rails_width-1]);
+
+		if (ball_x <= right_lower_rail && 
+			ball_x >= left_lower_rail && 
+			ball_y == top_lower_rail) {
+
+			contact = ball_x - left_lower_rail;
+
+			if (sprite_visible(rails_lower[contact])){
+				sprite_hide(rails_lower[contact]);
+				change_direction = true;
+			}
+		}
+	
+
+		if (change_direction) {
+			ball_dy = -ball_dy;
+			sprite_back(ball);
+			sprite_turn_to(ball, ball_dx, ball_dy );
+		}
+	}
+} // END rail_collision
 
 
 /**
