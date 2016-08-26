@@ -69,6 +69,7 @@ void singularity_effect(void);
 void screen_size_test(void);
 void count_time(int * time_return);
 void move_ball(void);
+void reset_rails(void);
 void check_for_wall_bounce(void);
 void move_paddle(sprite_id player, int direction);
 void bounce_on_paddle_contact(int player);
@@ -81,10 +82,12 @@ void listen_keyboard(void);
 void level_change(void);
 void restart_round(void);
 void reset_game(void);
+void prevent_ball_getting_stuck();
 void rail_collision(void);
-int has_ball_collided_with_rail(sprite_id rail[]);
-bool is_end_of_rail (sprite_id rail[], int contact);
+void hide_rail(sprite_id rail[], int contact);
 void game_lost(void);
+bool is_end_of_rail (sprite_id rail[], int contact);
+int has_ball_collided_with_rail(sprite_id rail[]);
 
 
 int main (void){
@@ -201,6 +204,7 @@ void rail_collision(void) {
 */
 int has_ball_collided_with_rail(sprite_id rail[]) {
 	int reflect_direction = NO_REFLECT;
+	int rail_to_left = -1, rail_to_right = 1;
 
 	int ball_x = round( sprite_x(ball) );
 	int ball_y = round( sprite_y(ball) );
@@ -218,17 +222,46 @@ int has_ball_collided_with_rail(sprite_id rail[]) {
 		if (sprite_visible(rail[contact])){
 			if (is_end_of_rail(rail, contact)) {
 				reflect_direction = REFLECT_X;
-				sprite_hide(rail[contact]);
 			} else {
-				sprite_hide(rail[contact]);
 				reflect_direction = REFLECT_Y;
 			}
 
+			hide_rail(rail, contact);
 		}
 	}
 
 	return reflect_direction;
 } // END has_ball_collided_with_rail
+
+// 42
+// 0 - 41///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void hide_rail(sprite_id rail[], int contact) {
+	int min_element = 0;
+	int max_element = rails_width-1;
+
+	int from_rail_number = (contact <= min_element) ? min_element : contact -1;
+	int to_rail_number = (contact >= max_element) ? max_element: contact +1;
+
+	for (; from_rail_number <= to_rail_number; from_rail_number++) {
+		if (sprite_visible(rail[from_rail_number])) {
+			sprite_hide(rail[from_rail_number]);
+		}
+	}
+} // END hide_rail
+
+
+/**
+* Reset Rails
+* - Reset the visibilty to visible on all rails
+*
+* @return void
+*/
+void reset_rails() {
+	for (int i = 0; i < rails_width; i++) {
+		sprite_show(rails_upper[i]);
+		sprite_show(rails_lower[i]);
+	}
+} // END reset_rails
 
 
 /**
@@ -283,7 +316,6 @@ void draw_levels() {
 			sprite_draw(rails_upper[i]);
 			sprite_draw(rails_lower[i]);
 		}
-
 	}
 } // END draw_levels
 
@@ -324,6 +356,10 @@ void level_change() {
 		level++;			
 	} else {
 		level = 1;
+	}
+
+	if (level == 4) {
+		reset_rails();
 	}
 
 	restart_round();
@@ -492,6 +528,32 @@ void bounce_on_paddle_contact(int player) {
 		sprite_turn_to(ball, ball_dx, ball_dy );
 	}
 } // END bounce_on_paddle_contact
+
+
+/**
+* Prevent Ball Getting Stuck
+* - When the human moves the paddle into the ball the ball
+*   can not move.  
+* - Checks if the ball exists in the same space as the paddle and 
+*   moves the ball.
+*
+* @return void
+*/
+void prevent_ball_getting_stuck() {
+	int ball_x = round( sprite_x(ball) );
+	int ball_y = round( sprite_y(ball) );
+
+	int paddle_x = round( sprite_x(paddle[HUMAN_PADDLE]) );
+	int paddle_y = round( sprite_y(paddle[HUMAN_PADDLE]) );
+
+	if (ball_x == paddle_x && 
+			ball_y <= paddle_y+paddle_height-1 &&
+			ball_y >= paddle_y) {
+
+		// Ball stuck
+		sprite_move(ball, -1, 0);
+	}
+} // END prevent_ball_getting_stuck
 
 
 /**
@@ -735,6 +797,8 @@ void move_paddle(sprite_id player, int direction) {
 	if (paddle_min_y <= current_y && current_y <= paddle_max_y) {
 		sprite_move(player, move_x, direction);
 	}
+
+	prevent_ball_getting_stuck();
 } // END move_paddle
 
 
