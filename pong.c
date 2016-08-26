@@ -506,6 +506,7 @@ void reset_game() {
 	
 	timer_old = 0, timer = 0, lives = 10, score = 0, level = 1;
 	seconds_counter = -1, minutes_counter = 0;
+
 	restart_round();
 } // END reset_game
 
@@ -527,7 +528,7 @@ void restart_round() {
 
 
 /**
-* Check for Humun Losa
+* Check for Humun Lose
 * - If the ball reachs the fall right screen
 * 	remove one live
 *
@@ -550,6 +551,15 @@ void check_for_human_lose() {
 } // END check_for_human_lose
 
 
+/**
+* Game Lost
+* - Human has lost the game
+* - Ask human to play again
+*     Y: resets game
+*     N: quits game
+*
+* @return void
+*/
 void game_lost() {
 	clear_screen();
 
@@ -583,6 +593,12 @@ void game_lost() {
 } // END game_lost
 
 
+/**
+* Move Computer Paddle
+* - Computer paddle just tracks the y location of the ball
+*
+* @return void
+*/
 void move_computer_paddle() {
 	int paddle_y = round( sprite_y(ball) - (paddle_height /2));
 
