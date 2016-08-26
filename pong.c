@@ -284,7 +284,7 @@ void reset_rails() {
 bool is_end_of_rail(sprite_id rail[], int contact) {
 	bool last_rail_left = true, last_rail_right = true;
 
-	for (int i = contact; i < rails_width; i++) {
+	for (int i = contact; i < rails_width-1; i++) {
 		if (sprite_visible(rail[contact])) {
 			last_rail_right = false;
 		}
