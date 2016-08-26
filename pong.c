@@ -83,7 +83,7 @@ void restart_round(void);
 void reset_game(void);
 void rail_collision(void);
 int has_ball_collided_with_rail(sprite_id rail[]);
-bool test_end_of_rail (sprite_id rail[], int contact);
+bool is_end_of_rail (sprite_id rail[], int contact);
 void game_lost(void);
 
 
@@ -216,7 +216,7 @@ int has_ball_collided_with_rail(sprite_id rail[]) {
 		int contact = ball_x - left_x_rail;
 
 		if (sprite_visible(rail[contact])){
-			if (test_end_of_rail(rail, contact)) {
+			if (is_end_of_rail(rail, contact)) {
 				reflect_direction = REFLECT_X;
 				sprite_hide(rail[contact]);
 			} else {
@@ -231,7 +231,17 @@ int has_ball_collided_with_rail(sprite_id rail[]) {
 } // END has_ball_collided_with_rail
 
 
-bool test_end_of_rail(sprite_id rail[], int contact) {
+/**
+* Is End Of Rail
+* - Test to see if the ball has collided with the last visible 
+*   section of the rail.  This is to prevent the ball getting stuck
+*   in the rail and removing every piece.  
+*-  May have not work perfectly if the ball hits the bottom or top of
+*   the last section.  Same problem as the paddle
+*
+* @return bool True if in contact with the last section of the rail row
+*/
+bool is_end_of_rail(sprite_id rail[], int contact) {
 	bool last_rail_left = true, last_rail_right = true;
 
 	for (int i = contact; i < rails_width; i++) {
@@ -247,7 +257,7 @@ bool test_end_of_rail(sprite_id rail[], int contact) {
 	}
 
 	return (last_rail_left || last_rail_right);
-}
+} // END is_end_of_rail
 
 
 /**
