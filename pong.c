@@ -26,6 +26,9 @@ Student ID:  n5372828
 #define T_SECONDS (1)
 #define MOVE_DOWN (1)
 #define MOVE_UP (-1)
+#define NO_REFLECT (0)
+#define REFLECT_X (1)
+#define REFLECT_Y (2)
 
 
 // Global Variables
@@ -79,7 +82,7 @@ void level_change(void);
 void restart_round(void);
 void reset_game(void);
 void rail_collision(void);
-bool has_ball_collided_with_rail(sprite_id rail[]);
+int has_ball_collided_with_rail(sprite_id rail[]);
 bool test_end_of_rail (sprite_id rail[], int contact);
 void game_lost(void);
 
@@ -168,17 +171,21 @@ void process_loop(){
 */
 void rail_collision(void) {
 	if (level == 4) {
-		bool change_direction_upper = false;
-		bool change_direction_lower = false;
+		int reflect_direction_upper = NO_REFLECT;
+		int reflect_direction_lower = NO_REFLECT;
 
 		double ball_dx = sprite_dx(ball);
 		double ball_dy = sprite_dy(ball);
 
-		change_direction_upper = has_ball_collided_with_rail(rails_upper);
-		change_direction_lower = has_ball_collided_with_rail(rails_lower);
+		reflect_direction_upper = has_ball_collided_with_rail(rails_upper);
+		reflect_direction_lower = has_ball_collided_with_rail(rails_lower);
 
-		if (change_direction_upper || change_direction_lower) {
+		if (reflect_direction_upper == REFLECT_Y || reflect_direction_lower == REFLECT_Y) {
 			ball_dy = -ball_dy;
+			sprite_back(ball);
+			sprite_turn_to(ball, ball_dx, ball_dy );
+		} else if (reflect_direction_upper == REFLECT_X || reflect_direction_lower == REFLECT_X) {
+			ball_dx = -ball_dx;
 			sprite_back(ball);
 			sprite_turn_to(ball, ball_dx, ball_dy );
 		}
@@ -192,8 +199,8 @@ void rail_collision(void) {
 *
 * @return bool
 */
-bool has_ball_collided_with_rail(sprite_id rail[]) {
-	bool change_direction = false;
+int has_ball_collided_with_rail(sprite_id rail[]) {
+	int reflect_direction = NO_REFLECT;
 
 	int ball_x = round( sprite_x(ball) );
 	int ball_y = round( sprite_y(ball) );
@@ -210,16 +217,17 @@ bool has_ball_collided_with_rail(sprite_id rail[]) {
 
 		if (sprite_visible(rail[contact])){
 			if (test_end_of_rail(rail, contact)) {
-
+				reflect_direction = REFLECT_X;
+				sprite_hide(rail[contact]);
 			} else {
 				sprite_hide(rail[contact]);
-				change_direction = true;
+				reflect_direction = REFLECT_Y;
 			}
 
 		}
 	}
 
-	return change_direction;
+	return reflect_direction;
 } // END has_ball_collided_with_rail
 
 
