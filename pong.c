@@ -82,7 +82,7 @@ void listen_keyboard(void);
 void level_change(void);
 void restart_round(void);
 void reset_game(void);
-void prevent_ball_getting_stuck();
+void realign_ball_with_paddle();
 void rail_collision(void);
 void hide_rail(sprite_id rail[], int contact);
 void game_lost(void);
@@ -546,7 +546,7 @@ void bounce_on_paddle_contact(int player) {
 *
 * @return void
 */
-void prevent_ball_getting_stuck() {
+void realign_ball_with_paddle() {
 	int ball_x = round( sprite_x(ball) );
 	int ball_y = round( sprite_y(ball) );
 
@@ -560,7 +560,7 @@ void prevent_ball_getting_stuck() {
 		// Ball stuck
 		sprite_move(ball, -1, 0);
 	}
-} // END prevent_ball_getting_stuck
+} // END realign_ball_with_paddle
 
 
 /**
