@@ -51,6 +51,11 @@ sprite_id *rails_lower = NULL;
 
 // Function prototypes
 void setup(void);
+void init_paddles(void);
+void init_ball(void);
+void init_singularity(void);
+void init_rails(void);
+void init_countdown_box(void);
 void process_loop(void);
 void draw_levels(void);
 void draw_help_screen(void);
@@ -75,11 +80,7 @@ void restart_round(void);
 void reset_game(void);
 void rail_collision(void);
 void game_lost(void);
-void init_paddles(void);
-void init_ball(void);
-void init_singularity(void);
-void init_rails(void);
-void init_countdown_box(void);
+
 
 
 void setup() {
@@ -144,6 +145,13 @@ void process_loop(){
 }
 
 
+/**
+* Rail Collision
+* - Calculate the ball location with respect to the rails
+* - Reflect ball in the required direction
+*
+* @return void
+*/
 void rail_collision(void) {
 	if (level == 4) {
 		int contact;
@@ -156,6 +164,7 @@ void rail_collision(void) {
 		double ball_dx = sprite_dx(ball);
 		double ball_dy = sprite_dy(ball);
 
+		// Upper Rails
 		int left_upper_rail = sprite_x(rails_upper[0]);
 		int top_upper_rail = sprite_y(rails_upper[0]);
 		int right_upper_rail = sprite_x(rails_upper[rails_width-1]);
@@ -170,9 +179,9 @@ void rail_collision(void) {
 				sprite_hide(rails_upper[contact]);
 				change_direction = true;
 			}
-			
-		}
+		} // END Upper Rails
 
+		// Lower Rails
 		int left_lower_rail = sprite_x(rails_lower[0]);
 		int top_lower_rail = sprite_y(rails_lower[0]);
 		int right_lower_rail = sprite_x(rails_lower[rails_width-1]);
@@ -187,7 +196,7 @@ void rail_collision(void) {
 				sprite_hide(rails_lower[contact]);
 				change_direction = true;
 			}
-		}
+		} // END Lower Rails
 	
 
 		if (change_direction) {
