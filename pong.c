@@ -82,7 +82,28 @@ void rail_collision(void);
 void game_lost(void);
 
 
+int main (void){
+	setup_screen();
+	setup();
 
+	while(!game_over){
+		process_loop();
+
+		timer_pause(DELAY);
+	}
+
+	show_exit_screen();
+
+	return 0;
+} // END Main
+
+
+/**
+* Setup
+* - High level function to setup the game
+*
+* @return void
+*/
 void setup() {
 	strcpy(anykey_help_text, "start");
 	srand( get_current_time() );
@@ -100,24 +121,15 @@ void setup() {
 	init_singularity();
 	init_rails();
 	init_countdown_box();
-}
+} // END setup
 
 
-int main (void){
-	setup_screen();
-	setup();
-
-	while(!game_over){
-		process_loop();
-
-		timer_pause(DELAY);
-	}
-
-	show_exit_screen();
-
-	return 0;
-}
-
+/**
+* Process Loop
+* - High level function that runs the game loop
+*
+* @return void
+*/
 void process_loop(){
 	clear_screen();
 
@@ -142,7 +154,7 @@ void process_loop(){
 	listen_keyboard();
 
 	show_screen();
-}
+} // END process_loop
 
 
 /**
