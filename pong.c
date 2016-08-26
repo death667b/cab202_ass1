@@ -80,6 +80,7 @@ void restart_round(void);
 void reset_game(void);
 void rail_collision(void);
 bool has_ball_collided_with_rail(sprite_id rail[]);
+bool test_end_of_rail (sprite_id rail[], int contact);
 void game_lost(void);
 
 
@@ -197,24 +198,48 @@ bool has_ball_collided_with_rail(sprite_id rail[]) {
 	int ball_x = round( sprite_x(ball) );
 	int ball_y = round( sprite_y(ball) );
 
-	int left_rail = sprite_x(rail[0]);
-	int top_rail = sprite_y(rail[0]);
-	int right_rail = sprite_x(rail[rails_width-1]);
+	int left_x_rail = sprite_x(rail[0]);
+	int y_rail = sprite_y(rail[0]);
+	int right_x_rail = sprite_x(rail[rails_width-1]);
 
-	if (ball_x <= right_rail && 
-		ball_x >= left_rail && 
-		ball_y == top_rail) {
+	if (ball_x <= right_x_rail && 
+		ball_x >= left_x_rail && 
+		ball_y == y_rail) {
 
-		int contact = ball_x - left_rail;
+		int contact = ball_x - left_x_rail;
 
 		if (sprite_visible(rail[contact])){
-			sprite_hide(rail[contact]);
-			change_direction = true;
+			if (test_end_of_rail(rail, contact)) {
+
+			} else {
+				sprite_hide(rail[contact]);
+				change_direction = true;
+			}
+
 		}
 	}
 
 	return change_direction;
 } // END has_ball_collided_with_rail
+
+
+bool test_end_of_rail(sprite_id rail[], int contact) {
+	bool last_rail_left = true, last_rail_right = true;
+
+	for (int i = contact; i < rails_width; i++) {
+		if (sprite_visible(rail[contact])) {
+			last_rail_right = false;
+		}
+	}
+
+	for (int i = contact; i > 0; i--) {
+		if (sprite_visible(rail[contact])) {
+			last_rail_left = false;
+		}		
+	}
+
+	return (last_rail_left || last_rail_right);
+}
 
 
 /**
