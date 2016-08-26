@@ -79,7 +79,7 @@ void level_change(void);
 void restart_round(void);
 void reset_game(void);
 void rail_collision(void);
-bool has_ball_collided_with_rail(sprite_id rail);
+bool has_ball_collided_with_rail(sprite_id rail[]);
 void game_lost(void);
 
 
@@ -167,8 +167,6 @@ void process_loop(){
 */
 void rail_collision(void) {
 	if (level == 4) {
-		int contact;
-
 		bool change_direction_upper = false;
 		bool change_direction_lower = false;
 
@@ -187,7 +185,13 @@ void rail_collision(void) {
 } // END rail_collision
 
 
-bool has_ball_collided_with_rail(sprite_id rail) {
+/**
+* Has Ball Collided With Rail
+* - Test if the ball has come into contact with visible rails
+*
+* @return bool
+*/
+bool has_ball_collided_with_rail(sprite_id rail[]) {
 	bool change_direction = false;
 
 	int ball_x = round( sprite_x(ball) );
@@ -201,7 +205,7 @@ bool has_ball_collided_with_rail(sprite_id rail) {
 		ball_x >= left_rail && 
 		ball_y == top_rail) {
 
-		contact = ball_x - left_rail;
+		int contact = ball_x - left_rail;
 
 		if (sprite_visible(rail[contact])){
 			sprite_hide(rail[contact]);
@@ -210,7 +214,7 @@ bool has_ball_collided_with_rail(sprite_id rail) {
 	}
 
 	return change_direction;
-}
+} // END has_ball_collided_with_rail
 
 
 /**
