@@ -87,7 +87,7 @@ void rail_collision(void);
 void hide_rail(sprite_id rail[], int contact);
 void game_lost(void);
 bool is_end_of_rail (sprite_id rail[], int contact);
-int has_ball_collided_with_rail(sprite_id rail[]);
+int rail_ball_collision_status(sprite_id rail[]);
 
 
 int main (void){
@@ -180,8 +180,8 @@ void rail_collision(void) {
 		double ball_dx = sprite_dx(ball);
 		double ball_dy = sprite_dy(ball);
 
-		reflect_direction_upper = has_ball_collided_with_rail(rails_upper);
-		reflect_direction_lower = has_ball_collided_with_rail(rails_lower);
+		reflect_direction_upper = rail_ball_collision_status(rails_upper);
+		reflect_direction_lower = rail_ball_collision_status(rails_lower);
 
 		if (reflect_direction_upper == REFLECT_Y || reflect_direction_lower == REFLECT_Y) {
 			ball_dy = -ball_dy;
@@ -197,12 +197,12 @@ void rail_collision(void) {
 
 
 /**
-* Has Ball Collided With Rail
+* Rail Ball Collision Status
 * - Test if the ball has come into contact with visible rails
 *
 * @return bool
 */
-int has_ball_collided_with_rail(sprite_id rail[]) {
+int rail_ball_collision_status(sprite_id rail[]) {
 	int reflect_direction = NO_REFLECT;
 	int rail_to_left = -1, rail_to_right = 1;
 
@@ -231,7 +231,7 @@ int has_ball_collided_with_rail(sprite_id rail[]) {
 	}
 
 	return reflect_direction;
-} // END has_ball_collided_with_rail
+} // END rail_ball_collision_status
 
 
 /**
@@ -698,6 +698,14 @@ void game_count_down() {
 			counter_y = 5;
 		}
 
+		// Clear background before drawing the counter down box
+		for (int i = 0; i < sprite_width(counter_box); i++) {
+			for (int j = 0; j < sprite_height(counter_box); j++) {
+				draw_char(i+sprite_x(counter_box), j+sprite_y(counter_box), ' ');
+			}
+		}
+
+		// Count down
 		do {
 			sprite_draw(counter_box);
 			draw_formatted(counter_x,counter_y,"%d...", counter_steps--);
