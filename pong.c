@@ -102,6 +102,7 @@ int main (void){
 
 	show_exit_screen();
 
+	cleanup_screen();
 	return 0;
 } // END Main
 
@@ -204,7 +205,6 @@ void rail_collision(void) {
 */
 int rail_ball_collision_status(sprite_id rail[]) {
 	int reflect_direction = NO_REFLECT;
-	int rail_to_left = -1, rail_to_right = 1;
 
 	int ball_x = round( sprite_x(ball) );
 	int ball_y = round( sprite_y(ball) );
