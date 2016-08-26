@@ -233,8 +233,15 @@ int has_ball_collided_with_rail(sprite_id rail[]) {
 	return reflect_direction;
 } // END has_ball_collided_with_rail
 
-// 42
-// 0 - 41///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+* Hide Rail
+* - Hides rails on either side of the ball contact
+* - If the rail exist and visible, it will hide it
+* Note:  This is required to prevent seg faults
+*
+* @return void
+*/
 void hide_rail(sprite_id rail[], int contact) {
 	int min_element = 0;
 	int max_element = rails_width-1;
