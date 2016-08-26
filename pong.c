@@ -813,7 +813,7 @@ void move_paddle(sprite_id player, int direction) {
 		sprite_move(player, move_x, direction);
 	}
 
-	prevent_ball_getting_stuck();
+	realign_ball_with_paddle();
 } // END move_paddle
 
 
