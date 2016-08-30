@@ -259,6 +259,14 @@ void hide_rail(sprite_id rail[], int contact) {
 } // END hide_rail
 
 
+/**
+* Reflect X Direction
+* - If the ball hits a rail with invisible sections in the opposite
+*   direction that the ball was travelling.  The ball's dx will be 
+*   reflected instead of dy
+*
+* @return bool True if ball needs to reflect dx
+*/
 bool reflect_x_direction(sprite_id rail[], int contact) {
 	bool reflect = false;
 	bool ball_moving_right = sprite_dx(ball) >= 0;
