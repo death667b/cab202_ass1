@@ -111,10 +111,8 @@ int main (void){
 /**
 * Setup
 * - High level function to setup the game
-*
-* @return void
 */
-void setup() {
+void setup(void) {
 	strcpy(anykey_help_text, "start");
 	srand( get_current_time() );
 	key = 'h';
@@ -137,10 +135,8 @@ void setup() {
 /**
 * Process Loop
 * - High level function that runs the game loop
-*
-* @return void
 */
-void process_loop(){
+void process_loop(void){
 	clear_screen();
 
 	if (key == 'h' || key == 'H'){
@@ -171,8 +167,6 @@ void process_loop(){
 * Rail Collision
 * - Calculate the ball location with respect to the rails
 * - Reflect ball in the required direction
-*
-* @return void
 */
 void rail_collision(void) {
 	if (level == 4) {
@@ -202,11 +196,13 @@ void rail_collision(void) {
 * Rail Ball Collision Status
 * - Test if the ball has come into contact with visible rails
 *
-* @return bool
+* @param sprite_id rail[] rail array to test
+*
+* @return int the direction if reflec, if any.
 */
 int rail_ball_collision_status(sprite_id rail[]) {
-	int ball_x = round( sprite_x(ball) );
-	int ball_y = round( sprite_y(ball) );
+	int ball_x = round(sprite_x(ball));
+	int ball_y = round(sprite_y(ball));
 
 	int reflect_direction = NO_REFLECT;
 
@@ -242,7 +238,8 @@ int rail_ball_collision_status(sprite_id rail[]) {
 * - If the rail exist and visible, it will hide it
 * Note:  This is required to prevent seg faults
 *
-* @return void
+* @param sprite_id rail[] The rail array with elements to hide
+* @param int contact The element of the ball impact
 */
 void hide_rail(sprite_id rail[], int contact) {
 	int min_element = 0;
@@ -264,6 +261,9 @@ void hide_rail(sprite_id rail[], int contact) {
 * - If the ball hits a rail with invisible sections in the opposite
 *   direction that the ball was travelling.  The ball's dx will be 
 *   reflected instead of dy
+*
+* @param sprite_id rail[] The rail array to test
+* @param int contact The element of the ball impact
 *
 * @return bool True if ball needs to reflect dx
 */
@@ -298,13 +298,12 @@ bool reflect_x_direction(sprite_id rail[], int contact) {
 	return reflect;
 } // END reflect_x_direction
 
+
 /**
 * Reset Rails
 * - Reset the visibilty to visible on all rails
-*
-* @return void
 */
-void reset_rails() {
+void reset_rails(void) {
 	for (int i = 0; i < rails_width; i++) {
 		sprite_show(rails_upper[i]);
 		sprite_show(rails_lower[i]);
@@ -316,14 +315,12 @@ void reset_rails() {
 * Draw Levels
 * - Draw the the characteristics for the 4 different
 *   levels
-*
-* @return void
 */
-void draw_levels() {
-	sprite_draw( paddle[HUMAN_PADDLE] );
+void draw_levels(void) {
+	sprite_draw(paddle[HUMAN_PADDLE]);
 
 	if (level > 1) {
-		sprite_draw( paddle[COMPUTER_PADDLE] );
+		sprite_draw(paddle[COMPUTER_PADDLE]);
 	}
 
 	if (level == 3) {
@@ -342,10 +339,8 @@ void draw_levels() {
 /**
 * Listen Keyboard
 * - React to user input, game controls and quiting
-*   
-* @return void
 */
-void listen_keyboard() {
+void listen_keyboard(void) {
 	if (key == 's' || key == 'S') {
 		move_paddle(paddle[HUMAN_PADDLE], MOVE_DOWN);
 	}
@@ -367,10 +362,8 @@ void listen_keyboard() {
 /**
 * Level Change
 * - Cycle though levels
-*
-* @return void
 */
-void level_change() {
+void level_change(void) {
 	if (level < 4){
 		level++;			
 	} else {
@@ -389,10 +382,8 @@ void level_change() {
 * Draw Singularity
 * - Draws the singularity sprite
 * - Displays after a 5 second delay
-*
-* @return void
 */
-void draw_singularity() {
+void draw_singularity(void) {
 	int time[2] = {0, 0};
 	int sum_time, show_after = 5;
 	count_time(time);
@@ -414,8 +405,6 @@ void draw_singularity() {
 * Singularity Effect
 * - When active calculate the area of effect for the 
 *   singularity
-*
-* @return void
 */
 void singularity_effect(void) {
 	if (singularity_active) {
@@ -429,8 +418,6 @@ void singularity_effect(void) {
 
 			ball_acceleration();
 		}
-
-		
 	}
 } // END singularity_effect
 
@@ -439,10 +426,8 @@ void singularity_effect(void) {
 * Ball Acceleration
 * - Calculate the balls acceleration when under effect from the
 *   singularity and adjust the balls speed and direction
-*
-* @return void
 */
-void ball_acceleration() {
+void ball_acceleration(void) {
 	int ball_x = round(sprite_x(ball));
 	int ball_y = round(sprite_y(ball));
 
@@ -459,6 +444,7 @@ void ball_acceleration() {
 
 	double distance_squared = pow(y_difference, 2) + pow(x_difference, 2);
 
+	// Limit intensity
 	if (distance_squared < inner_intensity) {
 		distance_squared = inner_intensity;
 	}
@@ -475,6 +461,7 @@ void ball_acceleration() {
 
 	double velocity = sqrt(pow(ball_dx, 2) + pow(ball_dy, 2));
 
+	// Limit acceleration
 	if (velocity > speed_limit_per_redraw){
 		ball_dx = ball_dx / velocity;
 		ball_dy = ball_dy / velocity;
@@ -497,15 +484,13 @@ void ball_acceleration() {
 *   score by one 
 *
 * @param int player number's paddle to check
-*
-* @return void
 */
 void bounce_on_paddle_contact(int player) {
-	int ball_x = round( sprite_x(ball) );
-	int ball_y = round( sprite_y(ball) );
+	int ball_x = round(sprite_x(ball));
+	int ball_y = round(sprite_y(ball));
 
-	int paddle_x = round( sprite_x(paddle[player]) );
-	int paddle_y = round( sprite_y(paddle[player]) );
+	int paddle_x = round(sprite_x(paddle[player]));
+	int paddle_y = round(sprite_y(paddle[player]));
 
 	// Test for any paddle contact
 	if (ball_x == paddle_x && 
@@ -555,15 +540,13 @@ void bounce_on_paddle_contact(int player) {
 *   can not move.  
 * - Checks if the ball exists in the same space as the paddle and 
 *   moves the ball.
-*
-* @return void
 */
-void realign_ball_with_paddle() {
-	int ball_x = round( sprite_x(ball) );
-	int ball_y = round( sprite_y(ball) );
+void realign_ball_with_paddle(void) {
+	int ball_x = round(sprite_x(ball));
+	int ball_y = round(sprite_y(ball));
 
-	int paddle_x = round( sprite_x(paddle[HUMAN_PADDLE]) );
-	int paddle_y = round( sprite_y(paddle[HUMAN_PADDLE]) );
+	int paddle_x = round(sprite_x(paddle[HUMAN_PADDLE]));
+	int paddle_y = round(sprite_y(paddle[HUMAN_PADDLE]));
 
 	if (ball_x == paddle_x && 
 			ball_y <= paddle_y+paddle_height-1 &&
@@ -578,10 +561,8 @@ void realign_ball_with_paddle() {
 /**
 * Reset Game
 * - Reset the game after a human lose or level change
-*
-* @return void
 */
-void reset_game() {
+void reset_game(void) {
 	sprite_move_to(paddle[HUMAN_PADDLE], human_paddle_x, paddle_start_y);
 	sprite_move_to(paddle[COMPUTER_PADDLE], computer_paddle_x, paddle_start_y);
 	
@@ -595,10 +576,8 @@ void reset_game() {
 /**
 * Restart Round
 * - Restarts the game after a human lose or level change
-*
-* @return void
 */
-void restart_round() {
+void restart_round(void) {
 	sprite_move_to(ball, starting_ball_x, starting_ball_y);
 
 	singularity_active = false;
@@ -612,11 +591,9 @@ void restart_round() {
 * Check for Humun Lose
 * - If the ball reachs the fall right screen
 * 	remove one live
-*
-* @return void
 */
-void check_for_human_lose() {
-	int x = round( sprite_x(ball) );
+void check_for_human_lose(void) {
+	int x = round(sprite_x(ball));
 	int right_wall_x = screen_width() - 1;
 
 	// If the human has lost, restart round
@@ -638,10 +615,8 @@ void check_for_human_lose() {
 * - Ask human to play again
 *     Y: resets game
 *     N: quits game
-*
-* @return void
 */
-void game_lost() {
+void game_lost(void) {
 	clear_screen();
 
 	bool show_panel = false;
@@ -670,17 +645,15 @@ void game_lost() {
 			correct_key = true;
 		}
 
-	} while ( !correct_key );
+	} while (!correct_key);
 } // END game_lost
 
 
 /**
 * Move Computer Paddle
 * - Computer paddle just tracks the y location of the ball
-*
-* @return void
 */
-void move_computer_paddle() {
+void move_computer_paddle(void) {
 	int paddle_y = round( sprite_y(ball) - (paddle_height /2));
 
 	if (paddle_min_y <= paddle_y && paddle_y <= paddle_max_y) {
@@ -696,10 +669,8 @@ void move_computer_paddle() {
 * Game Count Down
 * - Draws a box with a 3 half second count down at the beginning 
 *   of a round
-*
-* @return void
 */
-void game_count_down() {
+void game_count_down(void) {
 	if (count_down_timer) {
 		int counter_steps = 3, counter_delay = 300;
 		int counter_x = (screen_width()  /2) - 2, counter_y;
@@ -745,10 +716,8 @@ void game_count_down() {
 * Move Ball
 * - Setup ball for the initial direction 
 * - Move the ball and bounce off walls or paddles
-*
-* @return void
 */
-void move_ball() {
+void move_ball(void) {
 	if (initialize_ball) {
 		initialize_ball = false;
 		int start_angle = 90;
@@ -776,10 +745,8 @@ void move_ball() {
 * Check for Wall Bounce
 * - After each ball step check if it has hit a wall
 * - If true, change direction
-*
-* @return void
 */
-void check_for_wall_bounce() {
+void check_for_wall_bounce(void) {
 	int ball_width = 1,	ball_height = 1;
 	int panel_height = 2;
 
@@ -817,8 +784,6 @@ void check_for_wall_bounce() {
 *
 * @param sprite_id player Paddle to move up or down
 * @param int direction Direction to move paddle +down -up
-*
-* @return void
 */
 void move_paddle(sprite_id player, int direction) {
 	int move_x = 0;
@@ -861,10 +826,8 @@ void count_time(int * time_return) {
 * Draw Info Panel
 * - Add lives, score, current level and time passed at 1/4 increments
 *   across the screen.
-*
-* @return void
 */
-void draw_info_panel() {
+void draw_info_panel(void) {
 	int panel_y = 1;
 	int lives_x = 2;
 	int score_x = round((screen_width() / 4));
@@ -886,8 +849,6 @@ void draw_info_panel() {
 * - Draws a board for both the help screen and an active game
 *
 * @param bool display_menu: true will add a section for game details
-*
-* @return void
 */
 void draw_boarder(bool display_menu){
 	int left = 0, right = screen_width()-1;
@@ -908,10 +869,8 @@ void draw_boarder(bool display_menu){
 *	Draw help screen
 * - Changed the location of the title text and help text depending 
 *   the height of the initial window.
-*
-* @return void
 */
-void draw_help_screen(){
+void draw_help_screen(void){
 	// Init variables
 	sprite_id sprite_title_help_text, sprite_controls_help_text;
 
@@ -980,7 +939,6 @@ void draw_help_screen(){
 
 	// Keep function in a loop until the user is ready to play game
 	do{
-		// Note:  no key press returns a negitive number
 		loop_key = get_char();
 	} while (loop_key < 0);
 
@@ -998,10 +956,8 @@ void draw_help_screen(){
 * Screen Size Test
 * - The minimum allowable screen size is width of 60 and height of 10
 *   If failing this, quits the program
-*
-* @return void
 */
-void screen_size_test(){
+void screen_size_test(void){
 	if (screen_width() < MIN_WIDTH || screen_height() < MIN_HEIGHT){
 		draw_string(screen_width() /2-22, (screen_height() /2)-2, "You screen size is too small");
 		draw_string(screen_width() /2-22, (screen_height() /2)-1, "It needs to be a minium 60 wide and 10 high");
@@ -1017,10 +973,8 @@ void screen_size_test(){
 /**
 * Show Exit Screen
 * - Simple function to display exiting screen before game exit
-*
-* @return void
 */
-void show_exit_screen() {
+void show_exit_screen(void) {
 	clear_screen();
 
 	bool show_panel = false;
@@ -1036,10 +990,8 @@ void show_exit_screen() {
 /**
 * Initialize Paddles
 * - Sets up two paddles, one for human and the other for computer
-*
-* @return void
 */
-void init_paddles() {
+void init_paddles(void) {
 	char * paddle_img =
 	/**/  "|"
 	/**/  "|"
@@ -1083,10 +1035,8 @@ void init_paddles() {
 /**
 * Initialize Ball
 * - Creates the ball in the game
-*
-* @return void
 */
-void init_ball() {
+void init_ball(void) {
 	char * ball_img = "O";
 
 	starting_ball_x = screen_width() / 2;
@@ -1107,10 +1057,8 @@ void init_ball() {
 /**
 * Initialize Singularity
 * - Sets up the singularity on level 3
-*
-* @return void
 */
-void init_singularity() {
+void init_singularity(void) {
 	sing_width = 9, sing_height = 5;
 	sing_x = (screen_width() - sing_width ) /2;
 	sing_y = screen_height() / 2 - 1;
@@ -1137,10 +1085,8 @@ void init_singularity() {
 * - Sets up the two rails, both upper and lower.
 * - Memory allocated dynamically based on the user's screen width
 * - Each rail is an array with length half the screen width
-*
-* @return void
 */
-void init_rails() {
+void init_rails(void) {
 	rails_width = screen_width() /2;
 	int rails_starting_x = rails_width - (rails_width/2);
 	int single_rail_width = 1, single_rail_height = 1;
@@ -1174,10 +1120,8 @@ void init_rails() {
 /**
 * Initialize Countdown Box
 * - Sets up the outer box for the countdown
-*
-* @return void
 */
-void init_countdown_box() {
+void init_countdown_box(void) {
 	int counter_x = (screen_width()  /2) - 2, counter_y;
 
 	if (screen_height() >= 15) {
