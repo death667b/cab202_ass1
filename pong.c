@@ -16,7 +16,7 @@ Student ID:  n5372828
 #include <cab202_timers.h>
 
 
-// Configuration
+// Constants
 #define DELAY (10)
 #define MIN_HEIGHT (10)
 #define MIN_WIDTH (60)
@@ -31,7 +31,7 @@ Student ID:  n5372828
 #define REFLECT_Y (2)
 
 
-// Global Variables
+// Globals
 bool game_over = false, initialize_ball = true, count_down_timer = true;
 bool singularity_active = false;
 char anykey_help_text[9];
@@ -699,9 +699,14 @@ void game_count_down() {
 		}
 
 		// Clear background before drawing the counter down box
-		for (int i = 0; i < sprite_width(counter_box); i++) {
-			for (int j = 0; j < sprite_height(counter_box); j++) {
-				draw_char(i+sprite_x(counter_box), j+sprite_y(counter_box), ' ');
+		int clear_x, clear_y;
+		for (int x = 0; x < sprite_width(counter_box); x++) {
+			clear_x = x + sprite_x(counter_box);
+
+			for (int y = 0; y < sprite_height(counter_box); y++) {
+				clear_y = y + sprite_y(counter_box);
+
+				draw_char(clear_x, clear_y, ' ');
 			}
 		}
 
@@ -711,11 +716,9 @@ void game_count_down() {
 			draw_formatted(counter_x,counter_y,"%d...", counter_steps--);
 			show_screen();
 			timer_pause(counter_delay);
-			key = get_char();
-			if (key == 'l' || key == 'L') {
-				level_change();
-				draw_info_panel();
-			}
+
+			// catch and dump any key presses
+			get_char();
 		} while (counter_steps > 0);
 
 		count_down_timer = false;
