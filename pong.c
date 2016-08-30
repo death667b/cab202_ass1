@@ -29,6 +29,7 @@ Student ID:  n5372828
 #define NO_REFLECT (0)
 #define REFLECT_X (1)
 #define REFLECT_Y (2)
+#define BALL_SPEED (0.18)
 
 
 // Globals
@@ -86,7 +87,6 @@ void realign_ball_with_paddle();
 void rail_collision(void);
 void hide_rail(sprite_id rail[], int contact);
 void game_lost(void);
-bool is_end_of_rail (sprite_id rail[], int contact);
 int rail_ball_collision_status(sprite_id rail[]);
 
 
@@ -204,15 +204,14 @@ void rail_collision(void) {
 * @return bool
 */
 int rail_ball_collision_status(sprite_id rail[]) {
-	int reflect_direction = NO_REFLECT;
-
 	int ball_x = round( sprite_x(ball) );
 	int ball_y = round( sprite_y(ball) );
 
 	int left_x_rail = sprite_x(rail[0]);
-	int y_rail = sprite_y(rail[0]);
 	int right_x_rail = sprite_x(rail[rails_width-1]);
-
+	int y_rail = sprite_y(rail[0]);
+	
+	// if ball is in the area that the rails exist
 	if (ball_x <= right_x_rail && 
 		ball_x >= left_x_rail && 
 		ball_y == y_rail) {
@@ -220,10 +219,32 @@ int rail_ball_collision_status(sprite_id rail[]) {
 		int contact = ball_x - left_x_rail;
 
 		if (sprite_visible(rail[contact])){
-			if (is_end_of_rail(rail, contact)) {
+
+			int reflect_direction = REFLECT_Y;
+			bool ball_moving_right = sprite_dx(ball) >= 0;
+
+			int min_element = 0;
+			int max_element = rails_width-1;
+
+			int from_rail_number = (contact <= min_element) ? min_element : contact -1;
+			int to_rail_number = (contact >= max_element) ? max_element: contact +1;
+
+			if ((contact == max_element) && !ball_moving_right) {
+				reflect_direction = REFLECT_X;
+			} else if ((contact == min_element) && ball_moving_right) {
 				reflect_direction = REFLECT_X;
 			} else {
-				reflect_direction = REFLECT_Y;
+				for (int i = contact+1; i <= to_rail_number; i++) {
+					if (!sprite_visible(rail[i]) && !ball_moving_right) {
+						reflect_direction = REFLECT_X;
+					}
+				}
+
+				for (int i = contact-1; i >= from_rail_number; i--) {
+					if (!sprite_visible(rail[i]) && ball_moving_right) {
+						reflect_direction = REFLECT_X;
+					}		
+				}
 			}
 
 			hide_rail(rail, contact);
@@ -269,35 +290,6 @@ void reset_rails() {
 		sprite_show(rails_lower[i]);
 	}
 } // END reset_rails
-
-
-/**
-* Is End Of Rail
-* - Test to see if the ball has collided with the last visible 
-*   section of the rail.  This is to prevent the ball getting stuck
-*   in the rail and removing every piece.  
-*-  May have not work perfectly if the ball hits the bottom or top of
-*   the last section.  Same problem as the paddle
-*
-* @return bool True if in contact with the last section of the rail row
-*/
-bool is_end_of_rail(sprite_id rail[], int contact) {
-	bool last_rail_left = true, last_rail_right = true;
-
-	for (int i = contact; i < rails_width-1; i++) {
-		if (sprite_visible(rail[contact])) {
-			last_rail_right = false;
-		}
-	}
-
-	for (int i = contact; i > 0; i--) {
-		if (sprite_visible(rail[contact])) {
-			last_rail_left = false;
-		}		
-	}
-
-	return (last_rail_left || last_rail_right);
-} // END is_end_of_rail
 
 
 /**
@@ -742,7 +734,7 @@ void move_ball() {
 		int start_angle = 90;
 		double angle = (rand() % start_angle) - start_angle /2;
 
-		sprite_turn_to(ball, 0.2, 0 );
+		sprite_turn_to(ball, BALL_SPEED, 0 );
 		sprite_turn(ball, angle);
 	}
 
