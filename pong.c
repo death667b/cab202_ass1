@@ -87,6 +87,7 @@ void realign_ball_with_paddle();
 void rail_collision(void);
 void hide_rail(sprite_id rail[], int contact);
 void game_lost(void);
+bool reflect_x_direction(sprite_id rail[], int contact);
 int rail_ball_collision_status(sprite_id rail[]);
 
 
@@ -207,6 +208,8 @@ int rail_ball_collision_status(sprite_id rail[]) {
 	int ball_x = round( sprite_x(ball) );
 	int ball_y = round( sprite_y(ball) );
 
+	int reflect_direction = NO_REFLECT;
+
 	int left_x_rail = sprite_x(rail[0]);
 	int right_x_rail = sprite_x(rail[rails_width-1]);
 	int y_rail = sprite_y(rail[0]);
@@ -219,32 +222,10 @@ int rail_ball_collision_status(sprite_id rail[]) {
 		int contact = ball_x - left_x_rail;
 
 		if (sprite_visible(rail[contact])){
+			reflect_direction = REFLECT_Y;
 
-			int reflect_direction = REFLECT_Y;
-			bool ball_moving_right = sprite_dx(ball) >= 0;
-
-			int min_element = 0;
-			int max_element = rails_width-1;
-
-			int from_rail_number = (contact <= min_element) ? min_element : contact -1;
-			int to_rail_number = (contact >= max_element) ? max_element: contact +1;
-
-			if ((contact == max_element) && !ball_moving_right) {
+			if (reflect_x_direction(rail, contact)) {
 				reflect_direction = REFLECT_X;
-			} else if ((contact == min_element) && ball_moving_right) {
-				reflect_direction = REFLECT_X;
-			} else {
-				for (int i = contact+1; i <= to_rail_number; i++) {
-					if (!sprite_visible(rail[i]) && !ball_moving_right) {
-						reflect_direction = REFLECT_X;
-					}
-				}
-
-				for (int i = contact-1; i >= from_rail_number; i--) {
-					if (!sprite_visible(rail[i]) && ball_moving_right) {
-						reflect_direction = REFLECT_X;
-					}		
-				}
 			}
 
 			hide_rail(rail, contact);
@@ -277,6 +258,37 @@ void hide_rail(sprite_id rail[], int contact) {
 	}
 } // END hide_rail
 
+
+bool reflect_x_direction(sprite_id rail[], int contact) {
+	bool reflect = false;
+	bool ball_moving_right = sprite_dx(ball) >= 0;
+
+	int min_element = 0;
+	int max_element = rails_width-1;
+
+	int from_rail_number = (contact <= min_element) ? min_element : contact -1;
+	int to_rail_number = (contact >= max_element) ? max_element: contact +1;
+
+	if ((contact == max_element) && !ball_moving_right) {
+		reflect = true;
+	} else if ((contact == min_element) && ball_moving_right) {
+		reflect = true;
+	} else {
+		for (int i = contact+1; i <= to_rail_number; i++) {
+			if (!sprite_visible(rail[i]) && !ball_moving_right) {
+				reflect = true;
+			}
+		}
+
+		for (int i = contact-1; i >= from_rail_number; i--) {
+			if (!sprite_visible(rail[i]) && ball_moving_right) {
+				reflect = true;
+			}		
+		}
+	}
+
+	return reflect;
+} // END reflect_x_direction
 
 /**
 * Reset Rails
